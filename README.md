@@ -6,7 +6,7 @@ Facebook has a feature that allows users to download a copy of their data as a z
 #### Running the Code
 The Facebook Export can be downloaded from  the [Facebook Settings](https://www.facebook.com/settings) menu. 
 
-Run "python fb_parser.py" with the 'messages.htm' file in the same directory to export to JSON as proof of concept.
+Run "`python facebook.py [zip_archive_file_name or messages_htm_file_name]`" with the `facebook-[myusername].zip` or `messages.htm` files in the same directory to export to CSV and display top 10 most messaged friends. __Lines 39-40 in `facebook.py` will need to be updated to the name and username of the account being parsed__. If this is done, the code will attempt to open the zip file `facebook-[myusername].zip` by default if no argument is given to `facebook.py`.
 
 #### Dependencies
 The code is written in Python 2.7. The parser uses [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) to do the bulk of the capture from the htm file.
