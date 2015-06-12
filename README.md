@@ -6,7 +6,7 @@ Facebook has a feature that allows users to download a copy of their data as a z
 #### Running the Code
 The Facebook Export can be downloaded from  the [Facebook Settings](https://www.facebook.com/settings) menu. 
 
-__*Before any code can be run:*__ Lines 26 and 27 in `fb_parser.py` will need to be updated to the name and username of the account being parsed*__. If this is done, the code will attempt to open the zip file `facebook-[myusername].zip` by default if no argument is given to `facebook.py`.
+__*Before any code can be run:*__ Lines 26 and 27 in `fb_parser.py` will need to be updated to the name and username of the account being parsed. If this is done, the code will attempt to open the zip file `facebook-[myusername].zip` by default if no argument is given to `facebook.py`.
 
 Run "`python facebook.py [optional_filename]`" with the `facebook-[myusername].zip` or `messages.htm` files in the same directory to export to CSV, display top 10 most messaged friends and output a graph showing messages with the most messaged friend. This sample code can easily be adapted.
 
