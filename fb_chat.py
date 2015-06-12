@@ -62,7 +62,7 @@ class Chat(object):
            of Message objects. This is distinct from Thread.by(name) since all
            threads are searched by this method. For all messages in one thread
            from 'name', use Thread.by(name) on the correct Thread."""
-        return sorted([message for thread in self.threads if name in thread.people for message in thread.by(name)])
+        return sorted([message for thread in self.threads for message in thread.by(name)])
 
     def sent_before(self, date):
         """Returns a date ordered list of all messages sent before the date specified,
@@ -138,10 +138,10 @@ class Chat(object):
                 top_n.append((item[0], item[1]))
         return top_n
 
-    def search(self, string):
+    def search(self, string, ignore_case=False):
         """Returns a date ordered list of all messages in the thread containing
            'string', as a list of Message objects."""
-        return sorted([message for thread in self.threads for message in thread.search(string)])
+        return sorted([message for thread in self.threads for message in thread.search(string, ignore_case)])
 
 
 class Thread(object):
@@ -161,11 +161,7 @@ class Thread(object):
     def __getitem__(self, key):
         """Allows accessing Message objects in the messages list using Thread[n].
            Beware out by one errors!"""
-        if isinstance(key, int):
-            return self.messages[key - 1]  # To make message number and Thread[n] align
-        elif isinstance(key, slice):
-            start, stop, step = key.indices(len(self))
-            return self.messages[start - 1: stop - 1: step]  # Deal with slices too
+        return self.messages[key]
 
     def __repr__(self):
         """Set Python's representation of the Thread object."""
@@ -228,10 +224,10 @@ class Thread(object):
         end = self._date_parse(end)
         return [message for message in self.messages if message.sent_between(start, end)]
 
-    def search(self, string):
+    def search(self, string, ignore_case=False):
         """Returns a date ordered list of all messages in the thread containing
            'string', as a list of Message objects."""
-        return sorted([message for message in self.messages if message.contains(string)])
+        return sorted([message for message in self.messages if message.contains(string, ignore_case)])
 
 
 class Message(object):
@@ -239,12 +235,13 @@ class Message(object):
 
         - Contains a string of the author's name, the timestamp, number in the thread
           and the body of the message.
-        - When initialising, 'author' should be string containing the
-          message sender's name, 'date_time' should be a datetime.datetime object,
-          'text' should be the content of the message and 'num' should be the number
-          of the message in the thread."""
+        - When initialising, thread_name' should be the containing Thread.people_str,
+          'author' should be string containing the message sender's name, 'date_time'
+          should be a datetime.datetime object, 'text' should be the content of
+          the message and 'num' should be the number of the message in the thread."""
 
-    def __init__(self, author, date_time, text, num):
+    def __init__(self, thread, author, date_time, text, num):
+        self.thread_name = thread
         self.author = author
         self.date_time = date_time
         self.text = text
@@ -252,11 +249,12 @@ class Message(object):
 
     def __repr__(self):
         """Set Python's representation of the Message object."""
-        return '<MESSAGE: NUMBER={} TIMESTAMP={} AUTHOR={} MESSAGE="{}">'.format(self._num, self.date_time, self.author, self.text)
+        return '<MESSAGE: THREAD={} NUMBER={} TIMESTAMP={} AUTHOR={} MESSAGE="{}">'.\
+            format(self.thread_name, self._num, self.date_time, self.author, self.text)
 
     def __str__(self):
         """The string form of a Message is the format required for csv output."""
-        out = '"' + str(self._num) + '","' + self.author + '","' + str(self.date_time) + '","' + self.text + '"\n'
+        out = '"' + self.thread_name + '","' + str(self._num) + '","' + self.author + '","' + str(self.date_time) + '","' + self.text + '"\n'
         return out
 
     def __lt__(self, message):
@@ -322,11 +320,15 @@ class Message(object):
     def sent_between(self, start, end):
         """Returns True if the message was sent between the dates specified by 'start'
            and 'end'. The 'start' and 'end' can be datetime.datetime objects, or
-           a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+           a three or five tuple (YYYY, MM, DD[, HH, MM]). The start and end times
+           are inclusive since this is simplest."""
         start = self._date_parse(start)
         end = self._date_parse(end)
-        return start < self.date_time < end
+        return start <= self.date_time <= end
 
-    def contains(self, string):
-        """Returns True if 'string' is contained in the message text."""
-        return string in self.text
+    def contains(self, search_string, ignore_case=False):
+        """Returns True if 'search_string' is contained in the message text."""
+        if ignore_case:
+            return search_string.lower() in self.text.lower()
+        else:
+            return search_string in self.text
