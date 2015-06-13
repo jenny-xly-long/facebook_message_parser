@@ -51,4 +51,4 @@ if __name__ == "__main__":
     # Output to a csv file:
     Facebook.write_to_csv()
     # Show a graph of the most messaged friend's messages:
-    fb_analysis.messages_to_graph(Facebook.Chat, top10[0][0])
+    fb_analysis.messages_date_graph(Facebook.Chat, top10[0][0])

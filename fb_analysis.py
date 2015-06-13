@@ -11,10 +11,11 @@ import re
 
 def _update_thread_dict(thread_dict, thread_name, num):
     """Add new entries to count dictionary, dealing with duplicates carefully."""
-    if thread_name not in thread_dict:  
+    if thread_name not in thread_dict:
                 thread_dict.update({thread_name: num})
     else:  # Deal with duplicates, otherwise old entries get overwritten:
         thread_dict[thread_name] += num
+
 
 def top_n_people(Chat, N=-1, count_type="total", groups=False):
     """Return a list of the top N most messaged people.
@@ -71,6 +72,68 @@ _FB_GREY = (0.9294, 0.9294, 0.9294)
 _FB_BLUE = (0.2314, 0.3490, 0.5961)
 
 
+def _hour_list():
+    """Generate a list containing hours in day converted to floats."""
+    hours_bins = [n / 24.0 for n in range(0, 25)]
+    return hours_bins
+
+
+def _dt_to_decimal_time(datetime):
+    """Convert a datetime.datetime object into a fraction of a day float.
+
+       Take the decimal part of the date converted to number of days from 01/01/0001
+       and return it. It gives fraction of way through day: the time."""
+    datetime_decimal = date2num(datetime)
+    time_decimal = datetime_decimal - int(datetime_decimal)
+    return time_decimal
+
+
+def messages_time_graph(Chat, name, filename=None, no_gui=False):
+    """Create a graph of the time of day of messages sent between users.
+
+       Produces a histogram of the times of messages sent to and recieved from
+       another user. The method only works for individuals, not for threads between
+       multiple friends.
+
+       - 'Chat' should be the Chat object to analyse.
+       - 'name' should be the name of the user, and so the Thread, to be graphed.
+       - If a 'filename' is specified, output to a .png file as well as displaying
+         onscreen for viewing.
+       - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
+         is specified with this, the function will run but produce no output anywhere."""
+    Thread = Chat[name]
+    # Divide up into hourly bins, changing datetime objects to times in range [0,1):
+    bins = _hour_list()
+    times_from = [_dt_to_decimal_time(message.date_time) for message in Thread.by(name)]
+    times_to = [_dt_to_decimal_time(message.date_time) for message in Thread.by(Chat._myname)]
+    # Create the figure, hiding the display if no_gui set:
+    if no_gui:
+        plt.ioff()
+    plt.figure(figsize=(18, 9), dpi=80)
+    plt.hist([times_to, times_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=[Chat._myname, name], stacked=True)
+    plt.suptitle("Messages with " + name, size=18)
+    plt.xlabel("Time of Day")
+    plt.ylabel("Number of Messages")
+    # Move tick marks to centre of hourly bins by adding ~ half an hour (in days)
+    plt.gca().set_xticks([b + 0.02 for b in bins])
+    # Place tickmarks
+    plt.xticks(rotation=0, ha='center')
+    # Change the tick marks from useless fraction through day, to recognisable times:
+    # To do this use strftime to convert times to string (which needs dates >= 1900),
+    # so shift to 1900 (add 693596 days) and take off added half hour (minus 0.025)
+    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate + 693596 - 0.02).strftime('%H:%M')))
+    # Add some space at either end of the graph (axis in number of days, so +- 15 mins):
+    plt.xlim([bins[0] - 0.01, bins[-1] + 0.01])
+    # Place y gridlines beneath the plot:
+    plt.gca().yaxis.grid(True)
+    plt.gca().set_axisbelow(True)
+    # Add the legend at the top, underneath the title but outside the figure:
+    plt.legend(frameon=False, bbox_to_anchor=(0.5, 1.05), loc=9, ncol=2, borderaxespad=0)
+    # If given a filename, output to file:
+    if ((filename is not None) and (type(filename) is str)):
+        plt.savefig(filename + '.png', bbox_inches='tight')
+
+
 def _month_list(d1, d2):
     """Generate a list of months between d1 and d2 inclusive.
 
@@ -93,7 +156,7 @@ def _month_list(d1, d2):
     return months
 
 
-def messages_to_graph(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
+def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
     """Create a graph of the number of messages sent between users.
 
        Produces a graph of messages sent to and recieved from another user. The
@@ -107,7 +170,7 @@ def messages_to_graph(Chat, name, filename=None, start_date=None, end_date=None,
          covered; the default is the first message to the last, but specifying dates
          inside this range can be used to narrow down the region considered.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
-         is specified, the function will run but produce no output anywhere."""
+         is specified with this, the function will run but produce no output anywhere."""
     Thread = Chat[name]
     # Sanity check input dates, and fix if necessary (note MUST be one line to avoid reassignment before comparison):
     start_date, end_date = min(start_date, end_date), max(start_date, end_date)
@@ -227,8 +290,8 @@ def top_word_use(Chat, name, from_me=False, ignore_single_words=False):
     """Work out the most commonly used words by a friend.
 
        The function returns a list of (word, word_use_count) tuples. For long threads,
-       this function will take a long time, due to the analysis being done directly
-       in Python, not in a module using the faster C or C++.
+       THIS FUNCTION WILL TAKE A VERY LONG TIME, due to the analysis being done
+       directly in Python, not in a module using the faster C or C++.
 
        - 'name' is a string of the name of the Thread to consider.
        - 'from_me' is a boolean flag to consider messages sent by you to 'name'
