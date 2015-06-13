@@ -4,6 +4,64 @@ from matplotlib.dates import date2num, num2date
 from matplotlib import ticker
 import re
 
+# =============================================================================
+#                          Top N Most Messaged People
+# =============================================================================
+
+
+def _update_thread_dict(thread_dict, thread_name, num):
+    """Add new entries to count dictionary, dealing with duplicates carefully."""
+    if thread_name not in thread_dict:  
+                thread_dict.update({thread_name: num})
+    else:  # Deal with duplicates, otherwise old entries get overwritten:
+        thread_dict[thread_name] += num
+
+def top_n_people(Chat, N=-1, count_type="total", groups=False):
+    """Return a list of the top N most messaged people.
+
+       The "Top N People" can be judged by one of four criteria. The list
+       contains tuples of (name, message count). A negative or zero value for
+       N returns the full list, this is the default. The optional argument
+       'groups' allows group conversations to be included where this makes
+       sense. The 'count_type' argument can be one of four values:
+        - "total" - the default. This counts the total number of messages in
+          message threads, and sorts by this. Groups can be enabled.
+        - "to" - the total number of messages sent in a direct thread by
+          the current user: '_myname'. Groups can be enabled.
+        - "from" - the total number of messages sent in a direct thread by
+          the other person in the thread. If 'groups' is enabled, all messages
+          not from '_myname' are counted.
+        - "allfrom" - the total number of messages from each individual person
+          across all threads. Groups cannot be enabled and will be ignored. This
+          will include MYNAME, the current user!"""
+    thread_dict = {}
+    if count_type is "to":
+        for t in Chat.threads:
+            num = len(t.by(Chat._myname))
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "from":
+        for t in Chat.threads:
+            my_num = len(t.by(Chat._myname))
+            tot_num = len(t)
+            num = tot_num - my_num
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "allfrom":
+        for p in Chat._all_people:
+            num = len(Chat.all_from(p))
+            thread_dict.update({p: num})
+    else:  # Total messages from each thread
+        for t in Chat.threads:
+            num = len(t)
+            _update_thread_dict(thread_dict, t.people_str, num)
+    sorted_list = sorted(thread_dict.items(), key=lambda tup: tup[1], reverse=True)
+    top_n = []
+    for i, item in enumerate(sorted_list):
+        if ((len(top_n) >= N) and (N > 0)):
+            return top_n
+        if ((len(item[0].split(", ")) == 1) or groups):
+            top_n.append((item[0], item[1]))
+    return top_n
+
 
 # =============================================================================
 #                           Graphing Message Counts                           #

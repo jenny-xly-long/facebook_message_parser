@@ -46,7 +46,7 @@ if __name__ == "__main__":
         Facebook.parse_messages()
     # Now find and print the Top 10 Friends:
     print "Top 10 Most Messaged Friends: Total Thread Length"
-    top10 = Facebook.Chat.top_n_people(N=10)
+    top10 = fb_analysis.top_n_people(Facebook.Chat, N=10)
     print top10
     # Output to a csv file:
     Facebook.write_to_csv()
