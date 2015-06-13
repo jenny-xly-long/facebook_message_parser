@@ -15,8 +15,10 @@ streamWriter = codecs.lookup('utf-8')[-1]
 sys.stdout = streamWriter(sys.stdout)
 
 if __name__ == "__main__":
-    """Allow the parser to be run from the command line, optionally specifying
-       the filename to read in from as the first argument."""
+    """Allow the parser to be run from the command line.
+
+       Optionally, the function allows specifying the filename to read in from
+       as the first argument."""
     if len(sys.argv) >= 2:
         if ((".zip" in sys.argv[1]) or (".htm" in sys.argv[1])):
             fname = sys.argv[1]
@@ -41,4 +43,4 @@ if __name__ == "__main__":
     # Output to a csv file:
     Facebook.write_to_csv()
     # Show a graph of the most messaged friend's messages:
-    fb_analysis.histogram(Facebook.Chat, top10[0][0])
+    fb_analysis.messages_to_graph(Facebook.Chat, top10[0][0])

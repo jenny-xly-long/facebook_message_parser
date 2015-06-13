@@ -20,7 +20,9 @@ class Chat(object):
             self._all_people.update(thread.people)
 
     def __getitem__(self, key):
-        """Allows accessing Thread objects in the threads list using Chat["Thread Name"]
+        """Allow accessing Thread objects in the list using Chat["Thread Name"].
+
+           This method allows the threads list to be accessed using Chat["Thread Name"]
            or Chat[n] notation."""
         if type(key) is int:
             return self.threads[key]
@@ -32,14 +34,18 @@ class Chat(object):
         return "<{}'s CHAT LOG: TOTAL_THREADS={} TOTAL_MESSAGES={}>".format(self._myname, len(self.threads), self._total_messages)
 
     def __len__(self):
-        """Allow len() called on the Chat obejct to return the total number of
-           threads. This could be changed to be the total number of messages,
-           currently stored as Chat._total_messages()"""
+        """Return the total number of threads.
+
+           Allows the len() method to be called on a Chat object. This could be
+           changed to be the total number of messages, currently stored as
+           Chat._total_messages()"""
         return len(self.threads)
 
     def _date_parse(self, date):
-        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM])
-           as well as entered as datetime.datetime objects. The Year, Month and
+        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM]).
+
+           Removes the need to supply datetime objects, but still allows dates
+           to be entered as datetime.datetime objects. The Year, Month and
            Day are compulsory, the Hours and Minutes optional. May cause exceptions
            if poorly formatted tuples are used."""
         if type(date) is datetime.datetime:
@@ -48,50 +54,61 @@ class Chat(object):
             return datetime.datetime(*date)
 
     def _recount_messages(self):
-        """Update the count of total messages; since Thread objects can be extended
-           dynamically, this may prove necessary."""
+        """Update the count of total messages.
+
+           Since Thread objects can be extended dynamically, this may prove
+           necessary."""
         self._total_messages = len(self.all_messages())
 
     def all_messages(self):
-        """Returns a date ordered list of all messages contained in the Chat object,
-           as a list of Message objects."""
+        """Return a date ordered list of all messages.
+
+           The list is all messages contained in the Chat object, as a list of
+           Message objects."""
         return sorted([message for thread in self.threads for message in thread.messages])
 
     def all_from(self, name):
-        """Returns a date ordered list of all messages sent by 'name', as a list
-           of Message objects. This is distinct from Thread.by(name) since all
-           threads are searched by this method. For all messages in one thread
-           from 'name', use Thread.by(name) on the correct Thread."""
+        """Return a date ordered list of all messages sent by 'name'.
+
+           The list returned is a list of Message objects. This is distinct from
+           Thread.by(name) since all threads are searched by this method. For all
+           messages in one thread from 'name', use Thread.by(name) on the correct Thread."""
         return sorted([message for thread in self.threads for message in thread.by(name)])
 
     def sent_before(self, date):
-        """Returns a date ordered list of all messages sent before the date specified,
-           as a list of Message objects. The 'date' can be a datetime.datetime
-           object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent before specified date.
+
+           The function returns a list of Message objects. The 'date' can be a
+           datetime.datetime object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return sorted([message for thread in self.threads for message in thread.sent_before(date)])
 
     def sent_after(self, date):
-        """Returns a date ordered list of all messages sent after the date specified,
-           as a list of Message objects. The 'date' can be a datetime.datetime
-           object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent after specified date.
+
+           The list returned is a list of Message objects. The 'date' can be a
+           datetime.datetime object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return sorted([message for thread in self.threads for message in thread.sent_after(date)])
 
     def sent_between(self, start, end):
-        """Returns a date ordered list of all messages sent between the dates
-           specified, as a list of Message objects. The 'start' and 'end' can be
-           datetime.datetime objects, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent between specified dates.
+
+           The list returned is a list of Message objects. The 'start' and 'end'
+           can be datetime.datetime objects, or a three or five tuple
+           (YYYY, MM, DD[, HH, MM])."""
         start = self._date_parse(start)
         end = self._date_parse(end)
         return sorted([message for thread in self.threads for message in thread.sent_between(start, end)])
 
     def top_n_people(self, N=-1, count_type="total", groups=False):
-        """Return a list of the top N most messaged people, judged by one of four
-           criteria. The list contains tuples of (name, message count). A negative
-           or zero value for N returns the full list, this is the default. The optional
-           argument 'groups' allows group conversations to be included where this
-           makes sense. The 'count_type' argument can be one of four values:
+        """Return a list of the top N most messaged people.
+
+           The "Top N People" can be judged by one of four criteria. The list
+           contains tuples of (name, message count). A negative or zero value for
+           N returns the full list, this is the default. The optional argument
+           'groups' allows group conversations to be included where this makes
+           sense. The 'count_type' argument can be one of four values:
             - "total" - the default. This counts the total number of messages in
               message threads, and sorts by this. Groups can be enabled.
             - "to" - the total number of messages sent in a direct thread by
@@ -139,8 +156,12 @@ class Chat(object):
         return top_n
 
     def search(self, string, ignore_case=False):
-        """Returns a date ordered list of all messages in the thread containing
-           'string', as a list of Message objects."""
+        """Return a date ordered list of all messages containing 'string'.
+
+           This function searches in all threads, and returns a list of Message
+           objects.
+            - The function can be made case-insensitive by setting 'ignore_case'
+              to True."""
         return sorted([message for thread in self.threads for message in thread.search(string, ignore_case)])
 
 
@@ -159,8 +180,13 @@ class Thread(object):
         self.messages = sorted(messages)
 
     def __getitem__(self, key):
-        """Allows accessing Message objects in the messages list using Thread[n].
-           Beware out by one errors!"""
+        """Allow accessing Message objects in the messages list using Thread[n].
+
+           Beware out by one errors! The message numbers start counting at 1,
+           but the list they are stored in is indexed from 0.
+            - This behaviour could be corrected by either subtracting one from
+              the key (which causes issues when slicing), or by counting messages
+              from 0."""
         return self.messages[key]
 
     def __repr__(self):
@@ -168,13 +194,14 @@ class Thread(object):
         return '<THREAD: PEOPLE={}, MESSAGE_COUNT={}>'.format(self.people_str, len(self.messages))
 
     def __len__(self):
-        """Allow len() called on the Thread obejct to return the total number of
-           messages in the thread."""
+        """Return the total number of messages in the thread."""
         return len(self.messages)
 
     def _date_parse(self, date):
-        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM])
-           as well as entered as datetime.datetime objects. The Year, Month and
+        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM]).
+
+           Removes the need to supply datetime objects, but still allows dates
+           to be entered as datetime.datetime objects. The Year, Month and
            Day are compulsory, the Hours and Minutes optional. May cause exceptions
            if poorly formatted tuples are used."""
         if type(date) is datetime.datetime:
@@ -183,50 +210,62 @@ class Thread(object):
             return datetime.datetime(*date)  # Expand the tuple and allow datetime to process it
 
     def _add_messages(self, new_messages):
-        """Allows adding messages to an already created Thread object; useful for
-           merging duplicate threads together."""
+        """Allos adding messages to an already created Thread object.
+
+           This function is useful for merging duplicate threads together."""
         self.messages.extend(new_messages)
         self.messages = sorted(self.messages)
 
     def _renumber_messages(self):
-        """Renumbers all messages in the 'messages' list; they are sorted after
-           being added; but if messages are added using _add_messages() then the
-           numbering may be incorrect. This function fixes that."""
+        """Renumber all messages in the 'messages' list.
+
+           Message objects are are sorted after being added; but if messages are
+           added using _add_messages() then the numbering may be incorrect. This
+           function fixes that."""
         i = 1
         for message in self.messages:
             message._num = i
             i += 1
 
     def by(self, name):
-        """Returns a date ordered list of all messages sent by 'name', as a list
-           of Message objects."""
+        """Return a date ordered list of all messages sent by 'name'.
+
+           Returns a list of Message objects."""
         return [message for message in self.messages if message.sent_by(name)]
 
     def sent_before(self, date):
-        """Returns a date ordered list of all messages sent before the date specified,
-           as a list of Message objects. The 'date' can be a datetime.datetime
-           object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent before specified date.
+
+           The function returns a list of Message objects. The 'date' can be a
+           datetime.datetime object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return [message for message in self.messages if message.sent_before(date)]
 
     def sent_after(self, date):
-        """Returns a date ordered list of all messages sent after the date specified,
-           as a list of Message objects. The 'date' can be a datetime.datetime
-           object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent after specified date.
+
+           The list returned is a list of Message objects. The 'date' can be a
+           datetime.datetime object, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return [message for message in self.messages if message.sent_after(date)]
 
     def sent_between(self, start, end):
-        """Returns a date ordered list of all messages sent between the dates
-           specified, as a list of Message objects. The 'start' and 'end' can be
-           datetime.datetime objects, or a three or five tuple (YYYY, MM, DD[, HH, MM])."""
+        """Return a date ordered list of all messages sent between specified dates.
+
+           The list returned is a list of Message objects. The 'start' and 'end'
+           can be datetime.datetime objects, or a three or five tuple
+           (YYYY, MM, DD[, HH, MM])."""
         start = self._date_parse(start)
         end = self._date_parse(end)
         return [message for message in self.messages if message.sent_between(start, end)]
 
     def search(self, string, ignore_case=False):
-        """Returns a date ordered list of all messages in the thread containing
-           'string', as a list of Message objects."""
+        """Return a date ordered list of messages in Thread containing 'string'.
+
+           This function searches the current thread, and returns a list of Message
+           objects.
+            - The function can be made case-insensitive by setting 'ignore_case'
+              to True."""
         return sorted([message for message in self.messages if message.contains(string, ignore_case)])
 
 
@@ -253,12 +292,13 @@ class Message(object):
             format(self.thread_name, self._num, self.date_time, self.author, self.text)
 
     def __str__(self):
-        """The string form of a Message is the format required for csv output."""
+        """Return a string form of a Message in format required for csv output."""
         out = '"' + self.thread_name + '","' + str(self._num) + '","' + self.author + '","' + str(self.date_time) + '","' + self.text + '"\n'
         return out
 
     def __lt__(self, message):
         """Allow sorting of messages by implementing the less than operator.
+
            Sorting is by date, unless two messages were sent at the same time,
            in which case message number is used to resolve conflicts. This number
            ordering holds fine for messages in single threads, but offers no real
@@ -272,6 +312,7 @@ class Message(object):
 
     def __gt__(self, message):
         """Allow sorting of messages by implementing the greater than operator.
+
            Sorting is by date, unless two messages were sent at the same time,
            in which case message number is used to resolve conflicts. This number
            ordering holds fine for messages in single threads, but offers no real
@@ -290,8 +331,10 @@ class Message(object):
         return equal
 
     def _date_parse(self, date):
-        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM])
-           as well as entered as datetime.datetime objects. The Year, Month and
+        """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM]).
+
+           Removes the need to supply datetime objects, but still allows dates
+           to be entered as datetime.datetime objects. The Year, Month and
            Day are compulsory, the Hours and Minutes optional. May cause exceptions
            if poorly formatted tuples are used."""
         if type(date) is datetime.datetime:
@@ -300,26 +343,29 @@ class Message(object):
             return datetime.datetime(*date)
 
     def sent_by(self, name):
-        """Returns True if the message was sent by 'name'."""
+        """Return True if the message was sent by 'name'."""
         return self.author == name
 
     def sent_before(self, date):
-        """Returns True if the message was sent before the date specified. The
-           'date' can be a datetime.datetime object, or a three or five tuple
+        """Return True if the message was sent before the date specified.
+
+           The 'date' can be a datetime.datetime object, or a three or five tuple
            (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return self.date_time < date
 
     def sent_after(self, date):
-        """Returns True if the message was sent after the date specified. The
-           'date' can be a datetime.datetime object, or a three or five tuple
+        """Return True if the message was sent after the date specified.
+
+           The 'date' can be a datetime.datetime object, or a three or five tuple
            (YYYY, MM, DD[, HH, MM])."""
         date = self._date_parse(date)
         return self.date_time > date
 
     def sent_between(self, start, end):
-        """Returns True if the message was sent between the dates specified by 'start'
-           and 'end'. The 'start' and 'end' can be datetime.datetime objects, or
+        """Return True if the message was sent between the dates specified.
+
+           The 'start' and 'end' can be datetime.datetime objects, or
            a three or five tuple (YYYY, MM, DD[, HH, MM]). The start and end times
            are inclusive since this is simplest."""
         start = self._date_parse(start)
@@ -327,7 +373,7 @@ class Message(object):
         return start <= self.date_time <= end
 
     def contains(self, search_string, ignore_case=False):
-        """Returns True if 'search_string' is contained in the message text."""
+        """Return True if 'search_string' is contained in the message text."""
         if ignore_case:
             return search_string.lower() in self.text.lower()
         else:

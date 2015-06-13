@@ -14,7 +14,9 @@ _FB_BLUE = (0.2314, 0.3490, 0.5961)
 
 
 def _month_list(d1, d2):
-    """Generate a list of months between d1 and d2 inclusive, with an extra month
+    """Generate a list of months between d1 and d2 inclusive.
+
+       The list includes the months containing d1 and d2, with an extra month
        on the end for the upper limit of a histogram."""
     months = []
     d1 = datetime.datetime(d1.year, d1.month, 1)
@@ -33,9 +35,11 @@ def _month_list(d1, d2):
     return months
 
 
-def histogram(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
-    """Create a nice graph of the number of messages sent between users. Only works
-       for individuals, not for threads between multiple friends.
+def messages_to_graph(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
+    """Create a graph of the number of messages sent between users.
+
+       Produces a graph of messages sent to and recieved from another user. The
+       method only works for individuals, not for threads between multiple friends.
 
        - 'Chat' should be the Chat object to analyse.
        - 'name' should be the name of the user, and so the Thread, to be graphed.
@@ -90,14 +94,16 @@ def histogram(Chat, name, filename=None, start_date=None, end_date=None, no_gui=
     if ((filename is not None) and (type(filename) is str)):
         plt.savefig(filename + '.png', bbox_inches='tight')
 
+
 # =============================================================================
 #                           Word Frequency Analysis                           #
 # =============================================================================
 
 
 def _str_to_word_list(text):
-    """Turn a string into a list of words, removing URLs and punctuation. Takes
-       in a string and returns a list of strings."""
+    """Turn a string into a list of words, removing URLs and punctuation.
+
+       - The function takes in a string and returns a list of strings."""
     # Some characters and strings need deleting from messages to separate them into proper words:
     _EXCLUDE = ["'s", "'ll", ".", ",", ":", ";", "!", "?", "*", '"', "-", "+", "^", "_", "~", "(", ")", "[", "]", "/", "\\", "@", "="]
     # Some things need removing, but not deleting as with _EXCLUDE:
@@ -126,8 +132,9 @@ def _str_to_word_list(text):
 
 
 def _message_list_word_list(messages):
-    """Takes in a list of Message objects and returns a list of strings containing
-       the words in the messages."""
+    """Take a list of Message objects and return a list of strings.
+
+       The returned list of strings contains all of the words in the messages."""
     word_list = []
     for m in messages:
         word_list.extend(_str_to_word_list(m.text))
@@ -135,8 +142,11 @@ def _message_list_word_list(messages):
 
 
 def _word_list_to_freq(words, ignore_single_words=False):
-    """Takes in a list of strings, and returns a dictionary of (word, word_use_count)
-       pairs, sorted in descending order."""
+    """Take a list of strings, and return a list of (word, word_use_count).
+
+       - The returned list of pairs is sorted in descending order.
+       - Passing 'ignore_single_words' will remove any words only used once in
+         a message thread."""
     # The order of items in the CHANGE dictionary means changing back isn't quite so simple; just use a second dictionary:
     _CHANGE_BACK = {"tongueoutsmiley": ":P", "happyfacesmiley": ":)", "awkwardfacesmiley": ":/",
                     "loveheartsmiley": "<3", "sadfacesmiley": ":(", "cryingfacesmiley": ":'(",
@@ -156,10 +166,11 @@ def _word_list_to_freq(words, ignore_single_words=False):
 
 
 def top_word_use(Chat, name, from_me=False, ignore_single_words=False):
-    """Work out the most commonly used words by a friend. Returns a list of
-       (word, word_use_count) tuples. For long threads, this function will take a
-       long time due to the analysis being done directly in Python, not in a module
-       using the faster C or C++.
+    """Work out the most commonly used words by a friend.
+
+       The function returns a list of (word, word_use_count) tuples. For long threads,
+       this function will take a long time, due to the analysis being done directly
+       in Python, not in a module using the faster C or C++.
 
        - 'name' is a string of the name of the Thread to consider.
        - 'from_me' is a boolean flag to consider messages sent by you to 'name'

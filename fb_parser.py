@@ -7,9 +7,10 @@ import fb_chat
 
 
 class FBMessageParse(object):
-    """An object to encapsulate all the methods required to initialise, save and load
-       a fb_chat.Chat object, which contains a Pythonic representation of Facebook Message
-       history.
+    """An object to encapsulate all the methods required to parse messages.htm.
+
+       These include methods to initialise, save and load a fb_chat.Chat object,
+       which contains a Pythonic representation of Facebook Message history.
         - Can read in messages from the .zip archive exported from Facebook, or
           the .htm file contained in the archive.
         - Can dump the Chat object to a pickle file and load it again in another
@@ -61,11 +62,14 @@ class FBMessageParse(object):
         self._close()
 
     def _read_uid_people(self):
-        """Called automatically; do not call manually. Read in the 'uid_people'
+        """Read in the 'uid_people' file and add line entries to dictionaries.
+
+           Called automatically; do not call manually. Read in the 'uid_people'
            file and add line entries to the dictionaries used to translate between
-           UID and Name, and vice versa. Lines should be formatted '[uid]:[name]'.
-           Ill-formatted lines are ignored, and the file does not have to be present
-           for the code to function: unrecognised UIDs are left unchanged."""
+           UID and Name, and vice versa.
+            - Lines should be formatted '[uid]:[name]'.
+            - Ill-formatted lines are ignored, and the file does not have to be present
+              for the code to function: unrecognised UIDs are left unchanged."""
         try:
             with open('uid_people') as f:
                 lines = [line.rstrip('\n') for line in f]
@@ -80,13 +84,15 @@ class FBMessageParse(object):
             pass
 
     def _read_duplicate_list(self):
-        """Called automatically; do not call manually. Read in the 'duplicates'
+        """Read in the 'duplicates' file and add line entries to the dictionary.
+
+           Called automatically; do not call manually. Read in the 'duplicates'
            file and add line entries to the dictionary used to replace names.
            Useful for people who have changed their Facebook name to a nickname,
-           or appear in the Chat logs with two versions of their name. Lines should
-           be formatted '[old name]:[new name]'. Ill-formatted lines are ignored,
-           and the file does not have to be present for the code to function:
-           unrecognised UIDs are left unchanged."""
+           or appear in the Chat logs with two versions of their name.
+            - Lines should be formatted '[old name]:[new name]'.
+            - Ill-formatted lines are ignored, and the file does not have to be
+              present for the code to function: unrecognised names are left unchanged."""
         try:
             with open('duplicates') as f:
                 lines = [line.rstrip('\n') for line in f]
@@ -100,9 +106,10 @@ class FBMessageParse(object):
             pass
 
     def _thread_name_cleanup(self, namestr):
-        """Parse the Thread's name; change any message author names and remove
-           the name of the Chat owner (_MYNAME) from the name unless messages are
-           sent to oneself."""
+        """Parse the thread's name.
+
+           Change any message author names and remove the name of the Chat owner
+           (_MYNAME) from the name unless messages are sent to oneself."""
         namelist = sorted(namestr.split(", "))
         for i, name in enumerate(namelist):
             namelist[i] = self._message_author_parse(name)
@@ -111,11 +118,12 @@ class FBMessageParse(object):
         return ", ".join(namelist).encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
 
     def _message_author_parse(self, name):
-        """Tidy up the name of the sender of a message. If the name is a UID email
-           address, use the UID dictionary to replace their name if possible. If
-           the name is a duplicate (or to be renamed) then rename. Any UIDs which
-           remain are added to a list to facilitate populating a 'uid_people' file:
-           see print_unknowns()."""
+        """Tidy up the name of the sender of a message.
+
+           If the name is a UID email address, use the UID dictionary to replace
+           their name if possible. If the name is a duplicate (or to be renamed)
+           then rename. Any UIDs which remain are added to a list to facilitate
+           populating a 'uid_people' file: see print_unknowns()."""
         n = name.replace("@facebook.com", "")
         if n in self._UIDPEOPLE:
             name = self._UIDPEOPLE[n]
@@ -126,8 +134,9 @@ class FBMessageParse(object):
         return name.encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
 
     def _message_date_parse(self, datestr):
-        """Turn the datestamp on the message into a datetime object for ease of
-           use. UK based datestamps have +01 for BST; other locales may require
+        """Turn the datestamp on the message into a datetime object.
+
+           UK based datestamps have +01 for BST; other locales may require
            customised versions of this code."""
         if "+01" in datestr:
             # BST = 1   # If we want times in UTC, uncomment these lines
@@ -136,15 +145,17 @@ class FBMessageParse(object):
             # BST = 0
         return datetime.datetime.strptime(datestr, self._DATEFORMAT)  # + datetime.timedelta(hours=BST)
 
-#    def _date_unix(self, datetime_date):
-#        return int((datetime_date - datetime.datetime(1970, 1, 1)).total_seconds())
+    def _date_unix(self, datetime_date):
+        """Turn a datetime.datetime object into a UNIX time int."""
+        return int((datetime_date - datetime.datetime(1970, 1, 1)).total_seconds())
 
     def _message_body_parse(self, message_body):
-        """Tidy up the message body itself, turning newline characters into a
-           unique custom string which can be replaced after export if necessary.
-           Quote marks are also escaped, to allow the use of quotes and commas in
-           messages whilst allowing export to csv. Those two lines can be removed
-           if desired."""
+        """Tidy up the message body itself.
+
+           This turns newline characters into a unique custom string which can
+           be replaced after export if necessary. Quote marks are also escaped,
+           to allow the use of quotes and commas in messages whilst allowing
+           export to csv. Those two lines can be removed if desired."""
         if message_body is None:
             message_body = ""
         message_body = '<|NEWLINE|>'.join(message_body.splitlines())  # We can't have newline characters in a csv file
@@ -152,9 +163,11 @@ class FBMessageParse(object):
         return message_body
 
     def print_unknowns(self):
-        """Print out any UIDs of people not recognised by the code, along with
-           instructions on how to find names for these people and how to add the
-           names to the 'uid_people' file."""
+        """Print out any UIDs of people not recognised by the code.
+
+           Prints lines containing unrecognised UIDs, along with instructions on
+           how to find names for these people and how to add the names to the
+           'uid_people' file."""
         if self.Chat is None:
             print "The message export file has not been parsed. Run parse_messages()."
             return
@@ -166,8 +179,10 @@ class FBMessageParse(object):
             print uid
 
     def parse_messages(self, group_duplicates=True):
-        """Takes the loaded zip file or htm file and reads in the messages using
-           BeautifulSoup to parse the htm file. Creates the Chat object, which
+        """Take the loaded zip file or htm file and create a Chat object.
+
+           Takes the messages.htm file and reads in the messages using
+           BeautifulSoup to parse the html data. Creates the Chat object, which
            can be used independently and accessed as the FBMessageParse.Chat object.
             - Optional argument 'group_duplicates' groups together Threads containing
               the same participants. Message Threads over 10,000 messages long are
@@ -240,10 +255,11 @@ class FBMessageParse(object):
         return self.Chat
 
     def write_to_csv(self, filename='messages.csv', chronological=False):
-        """Export all messages to csv format. The filename can be specified as an
-           optional argument. If 'chronological' is True, messages are printed in
-           date order, otherwise they are printed grouped in Threads sorted by
-           total thread length."""
+        """Export all messages to csv format.
+
+           The filename can be specified as an optional argument. If 'chronological'
+           is True, messages are printed in date order, otherwise they are printed
+           grouped in Threads sorted by total thread length."""
         with open(filename, "w") as f:
             header_line = '"Thread","Message Number","Message Author","Message Timestamp","Message Body"\n'
             f.write(header_line.encode('utf8'))
@@ -258,18 +274,21 @@ class FBMessageParse(object):
                         f.write(text.encode('utf8'))
 
     def dump_to_pickle(self, filename='messages.pickle'):
-        """Write out the Chat object to a pickle file, which can be used to restore
-           the Chat object in another session without re-importing the zip or htm
-           file. Load either using load_from_pickle(), or in another program using
-           Pickle's standard load() command."""
+        """Serialise the Chat object to a pickle file.
+
+           The pickle file can be used to restore the Chat object in another
+           session without re-importing the zip or htm file. Load either using
+           load_from_pickle(), or in another program using Pickle's standard load()
+           command."""
         with open(filename, "w") as f:
             pickle.dump(self.Chat, f)
 
     def load_from_pickle(self, filename='messages.pickle'):
-        """Read in the pickle file, optionally from a specified filename, setting
-           and returning the Chat object. Provided mainly as an example, since
-           the parser's main aim to to read in from zip or htm, and to output csv
-           or the Chat object."""
+        """Read in the pickle file, optionally from a specified filename.
+
+           The function sets the internal Chat object and returns the Chat object.
+           Provided mainly as an example, since the parser's main aim to to read
+           in from zip or htm, and to output csv or the Chat object."""
         with open(filename, "r") as f:
             self.Chat = pickle.load(f)
         return self.Chat
