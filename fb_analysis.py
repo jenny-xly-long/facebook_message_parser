@@ -97,6 +97,8 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
 
        - 'Chat' should be the Chat object to analyse.
        - 'name' should be the name of the user, and so the Thread, to be graphed.
+         A special case is when 'name' is the name of the current user, in which
+         case the graph of ALL messages the current user has sent is produced.
        - If a 'filename' is specified, output to a .png file as well as displaying
          onscreen for viewing.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
@@ -104,14 +106,25 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
     Thread = Chat[name]
     # Divide up into hourly bins, changing datetime objects to times in range [0,1):
     bins = _hour_list()
-    times_from = [_dt_to_decimal_time(message.date_time) for message in Thread.by(name)]
-    times_to = [_dt_to_decimal_time(message.date_time) for message in Thread.by(Chat._myname)]
+    # If looking at graph with other users, get messages to and from:
+    if name != Chat._myname:
+        times_from = [_dt_to_decimal_time(message.date_time) for message in Thread.by(name)]
+        times_to = [_dt_to_decimal_time(message.date_time) for message in Thread.by(Chat._myname)]
+        label = [Chat._myname, name]
+    else:  # If looking at all messages sent; do things differently:
+        times_from = None
+        times_to = [_dt_to_decimal_time(message.date_time) for message in Chat.all_from(Chat._myname)]
+        label = Chat._myname
     # Create the figure, hiding the display if no_gui set:
     if no_gui:
         plt.ioff()
     plt.figure(figsize=(18, 9), dpi=80)
-    plt.hist([times_to, times_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=[Chat._myname, name], stacked=True)
-    plt.suptitle("Messages with " + name, size=18)
+    plt.hist([times_to, times_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=label, stacked=True)
+    # Title the graph correctly, and label axes:
+    if name != Chat._myname:
+        plt.suptitle("Messages with " + name, size=18)
+    else:
+        plt.suptitle("All Messages Sent", size=18)
     plt.xlabel("Time of Day")
     plt.ylabel("Number of Messages")
     # Move tick marks to centre of hourly bins by adding ~ half an hour (in days)
@@ -164,6 +177,8 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
 
        - 'Chat' should be the Chat object to analyse.
        - 'name' should be the name of the user, and so the Thread, to be graphed.
+         A special case is when 'name' is the name of the current user, in which
+         case the graph of ALL messages the current user has sent is produced.
        - If a 'filename' is specified, output to a .png file as well as displaying
          onscreen for viewing.
        - 'start_date' and 'end_date' can be used to narrow the range of dates
@@ -171,29 +186,53 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
          inside this range can be used to narrow down the region considered.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
          is specified with this, the function will run but produce no output anywhere."""
-    Thread = Chat[name]
     # Sanity check input dates, and fix if necessary (note MUST be one line to avoid reassignment before comparison):
-    start_date, end_date = min(start_date, end_date), max(start_date, end_date)
-    # If a start date given (which is after the message thread starts), use it:
-    if start_date is None:
-        d_min = Thread[0].date_time
+    if ((start_date is not None) and (end_date is not None)):
+        start_date, end_date = min(start_date, end_date), max(start_date, end_date)
+    # If looking at graph with other users, get messages to and from:
+    if name != Chat._myname:
+            Thread = Chat[name]
+            # If a start date given (which is after the message thread starts), use it:
+            if start_date is None:
+                d_min = Thread[0].date_time
+            else:
+                d_min = max(Chat._date_parse(start_date), Thread[0].date_time)
+            # If an end date given (which is before the message thread ends), use it:
+            if end_date is None:
+                d_max = Thread[-1].date_time
+            else:
+                d_max = min(Chat._date_parse(end_date), Thread[-1].date_time)
+            dates_from = [date2num(message.date_time) for message in Thread.by(name)]
+            dates_to = [date2num(message.date_time) for message in Thread.by(Chat._myname)]
+            label = [Chat._myname, name]
+    # If looking at all messages sent; do things differently:
     else:
-        d_min = max(Chat._date_parse(start_date), Thread[0].date_time)
-    # If an end date given (which is before the message thread ends), use it:
-    if end_date is None:
-        d_max = Thread[-1].date_time
-    else:
-        d_max = min(Chat._date_parse(end_date), Thread[-1].date_time)
+        message_list = Chat.all_from(Chat._myname)
+        # If a start date given (which is after the message thread starts), use it:
+        if start_date is None:
+            d_min = message_list[0].date_time
+        else:
+            d_min = max(Chat._date_parse(start_date), message_list[0].date_time)
+        # If an end date given (which is before the message thread ends), use it:
+        if end_date is None:
+            d_max = message_list[-1].date_time
+        else:
+            d_max = min(Chat._date_parse(end_date), message_list[-1].date_time)
+        dates_from = None
+        dates_to = [date2num(message.date_time) for message in message_list]
+        label = Chat._myname
     # Divide up into month bins, changing datetime objects to number of days for plotting:
     bins = [date2num(b) for b in _month_list(d_min, d_max)]
-    dates_from = [date2num(message.date_time) for message in Thread.by(name)]
-    dates_to = [date2num(message.date_time) for message in Thread.by(Chat._myname)]
     # Create the figure, hiding the display if no_gui set:
     if no_gui:
         plt.ioff()
     plt.figure(figsize=(18, 9), dpi=80)
-    plt.hist([dates_to, dates_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=[Chat._myname, name], stacked=True)
-    plt.suptitle("Messages with " + name, size=18)
+    plt.hist([dates_to, dates_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=label, stacked=True)
+    # Title the graph correctly, and label axes:
+    if name != Chat._myname:
+        plt.suptitle("Messages with " + name, size=18)
+    else:
+        plt.suptitle("All Messages Sent", size=18)
     plt.ylabel("Number of Messages")
     # Put the tick marks at the rough centre of months by adding 15 days (~ 1/2 a month):
     plt.gca().set_xticks([b + 15 for b in bins])
