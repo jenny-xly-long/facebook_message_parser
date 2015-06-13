@@ -37,7 +37,7 @@ class FBMessageParse(object):
         #
         self._archive = None
         self._messages_htm = None
-        #
+        # Open either the .zip and contained htm, the pickle file, or another file:
         if ".zip" in fname:
             self._archive = zipfile.ZipFile(fname, 'r')
         if self._archive is not None:
@@ -46,6 +46,7 @@ class FBMessageParse(object):
             self.load_from_pickle(fname)
         else:
             self._messages_htm = open(fname, "r")
+        #
         self._read_uid_people()
         self._read_duplicate_list()
 

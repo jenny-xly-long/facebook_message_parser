@@ -20,12 +20,17 @@ if __name__ == "__main__":
        Optionally, the function allows specifying the filename to read in from
        as the first argument."""
     if len(sys.argv) >= 2:
-        if ((".zip" in sys.argv[1]) or (".htm" in sys.argv[1])):
+        # If filname passed in and a recognised format, continue:
+        if ((".zip" in sys.argv[1]) or (".htm" in sys.argv[1]) or (".pickle" in sys.argv[1])):
             fname = sys.argv[1]
         else:
-            print "File is not a .zip file or a .htm file. Abort."
-            sys.exit(-1)
+            # If not a recognised format, stop but allow override:
+            print "File is not a .zip file, a .htm file or a pickle file."
+            cont = raw_input("Continue anyway? (y/n)")
+            if cont == "n":
+                sys.exit(-1)
     else:
+        # If no argument, attempt to open the default .zip export file:
         fname = "facebook-" + fb_parser.FBMessageParse._MYUSERNAME + ".zip"
     if not os.path.isfile(fname):
         print "File " + fname + " does not exist or could not be found! Abort."
@@ -33,9 +38,12 @@ if __name__ == "__main__":
 
     # Some example code to add functionality immediately.
 
-    # Creat the parser, and parse the messages file:
-    Facebook = fb_parser.FBMessageParse(fname)
-    Facebook.parse_messages()
+    # Create the parser, and parse the messages file:
+    if ".pickle" in fname:
+        Facebook = fb_parser.FBMessageParse(fname, load_pickle=True)
+    else:
+        Facebook = fb_parser.FBMessageParse(fname)
+        Facebook.parse_messages()
     # Now find and print the Top 10 Friends:
     print "Top 10 Most Messaged Friends: Total Thread Length"
     top10 = Facebook.Chat.top_n_people(N=10)
