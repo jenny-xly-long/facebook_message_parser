@@ -1,5 +1,6 @@
-messages.htm
-messages.pickle
-messages.json
-messages.csv
+*.htm
+*.pickle
+*.json
+*.csv
+*.zip
 __pycache__/
