@@ -2,6 +2,7 @@ import datetime
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 from matplotlib import ticker
+import matplotlib
 import re
 
 # =============================================================================
@@ -70,6 +71,27 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
 
 _FB_GREY = (0.9294, 0.9294, 0.9294)
 _FB_BLUE = (0.2314, 0.3490, 0.5961)
+_BG_COLOUR = (1.0, 1.0, 1.0)
+_TEXT_COLOUR = (0.0, 0.0, 0.0)
+
+
+def _change_matplotlib_colours(text_color=_TEXT_COLOUR, bg_colour=_BG_COLOUR):
+    """Change matplotlib default colors for ALL graphs produced in current session.
+
+        - 'text_colour' sets the colour of all text, as well as axes colours and
+          axis tick mark colours.
+        - 'bg_colour' changes the background and outside fill colour of the plot."""
+    matplotlib.rc('figure', facecolor=_BG_COLOUR)
+    matplotlib.rc('savefig', facecolor=_BG_COLOUR, edgecolor=_TEXT_COLOUR)
+    matplotlib.rc('axes', edgecolor=_TEXT_COLOUR, facecolor=_BG_COLOUR, labelcolor=_TEXT_COLOUR)
+    matplotlib.rc('text', color=_TEXT_COLOUR)
+    matplotlib.rc('grid', color=_TEXT_COLOUR)
+    matplotlib.rc('xtick', color=_TEXT_COLOUR)
+    matplotlib.rc('ytick', color=_TEXT_COLOUR)
+
+
+# Run the colour change code on import of the module:
+_change_matplotlib_colours()
 
 
 def _hour_list():
@@ -133,7 +155,7 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
     plt.xticks(rotation=0, ha='center')
     # Change the tick marks from useless fraction through day, to recognisable times:
     # To do this use strftime to convert times to string (which needs dates >= 1900),
-    # so shift to 1900 (add 693596 days) and take off added half hour (minus 0.025)
+    # so shift to 1900 (add 693596 days) and take off added half hour (minus 0.02)
     plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate + 693596 - 0.02).strftime('%H:%M')))
     # Add some space at either end of the graph (axis in number of days, so +- 15 mins):
     plt.xlim([bins[0] - 0.01, bins[-1] + 0.01])
