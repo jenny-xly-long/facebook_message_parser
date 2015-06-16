@@ -48,7 +48,10 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
             num = tot_num - my_num
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "allfrom":
-        for p in Chat._all_people:
+        # Remove _myname from all_people (but not the original!):
+        all_people = Chat._all_people.copy()
+        all_people.remove(Chat._myname)
+        for p in all_people:
             num = len(Chat.all_from(p))
             thread_dict.update({p: num})
     else:  # Total messages from each thread
