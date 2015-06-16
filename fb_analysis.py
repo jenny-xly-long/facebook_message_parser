@@ -124,7 +124,7 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
        - 'name' should be the name of the user, and so the Thread, to be graphed.
          A special case is when 'name' is the name of the current user, in which
          case the graph of ALL messages the current user has sent is produced.
-       - If a 'filename' is specified, output to a .png file as well as displaying
+       - If a 'filename' is specified, output to file as well as displaying
          onscreen for viewing.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
          is specified with this, the function will run but produce no output anywhere."""
@@ -150,26 +150,32 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
         plt.suptitle("Messages with " + name, size=18)
     else:
         plt.suptitle("All Messages Sent", size=18)
-    plt.xlabel("Time of Day")
-    plt.ylabel("Number of Messages")
+    plt.xlabel("Time of Day", labelpad=20, size=15)
+    plt.ylabel("Number of Messages", labelpad=20, size=15)
     # Move tick marks to centre of hourly bins by adding ~ half an hour (in days)
-    plt.gca().set_xticks([b + 0.02 for b in bins])
+    axes = plt.gca()
+    axes.set_xticks([b + 0.02 for b in bins])
     # Place tickmarks
     plt.xticks(rotation=0, ha='center')
     # Change the tick marks from useless fraction through day, to recognisable times:
     # To do this use strftime to convert times to string (which needs dates >= 1900),
     # so shift to 1900 (add 693596 days) and take off added half hour (minus 0.02)
-    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate + 693596 - 0.02).strftime('%H:%M')))
+    axes.xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate + 693596 - 0.02).strftime('%H:%M')))
     # Add some space at either end of the graph (axis in number of days, so +- 15 mins):
     plt.xlim([bins[0] - 0.01, bins[-1] + 0.01])
     # Place y gridlines beneath the plot:
-    plt.gca().yaxis.grid(True)
-    plt.gca().set_axisbelow(True)
+    axes.yaxis.grid(True)
+    axes.set_axisbelow(True)
+    # Hide unnecessary borders and tickmarks:
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.yaxis.set_ticks_position('left')
+    plt.tick_params(axis='x', which='both', bottom='off', top='off')
     # Add the legend at the top, underneath the title but outside the figure:
     plt.legend(frameon=False, bbox_to_anchor=(0.5, 1.05), loc=9, ncol=2, borderaxespad=0)
     # If given a filename, output to file:
     if ((filename is not None) and (type(filename) is str)):
-        plt.savefig(filename + '.png', bbox_inches='tight')
+        plt.savefig(filename, bbox_inches='tight')
 
 
 # ====== Histogram of Date:
@@ -207,7 +213,7 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
        - 'name' should be the name of the user, and so the Thread, to be graphed.
          A special case is when 'name' is the name of the current user, in which
          case the graph of ALL messages the current user has sent is produced.
-       - If a 'filename' is specified, output to a .png file as well as displaying
+       - If a 'filename' is specified, output to file as well as displaying
          onscreen for viewing.
        - 'start_date' and 'end_date' can be used to narrow the range of dates
          covered; the default is the first message to the last, but specifying dates
@@ -261,26 +267,32 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
         plt.suptitle("Messages with " + name, size=18)
     else:
         plt.suptitle("All Messages Sent", size=18)
-    plt.ylabel("Number of Messages")
+    plt.ylabel("Number of Messages", labelpad=20, size=15)
     # Put the tick marks at the rough centre of months by adding 15 days (~ 1/2 a month):
-    plt.gca().set_xticks([b + 15 for b in bins])
+    axes = plt.gca()
+    axes.set_xticks([b + 15 for b in bins])
     # The x labels are unreadbale at angle if more than ~50 of them, put them vertical if so:
-    if len(bins) > 50:
+    if len(bins) > 45:
         plt.xticks(rotation='vertical')
     else:
         plt.xticks(rotation=30, ha='right')
     # Change the tick marks from useless number of days, to recognisable dates:
-    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%b %Y')))
+    axes.xaxis.set_major_formatter(ticker.FuncFormatter(lambda numdate, _: num2date(numdate).strftime('%b %Y')))
     # Add some space at either end of the graph (axis in number of days, so -10 days and +5 days):
     plt.xlim([bins[0] - 10, bins[-1] + 5])
     # Place y gridlines beneath the plot:
-    plt.gca().yaxis.grid(True)
-    plt.gca().set_axisbelow(True)
+    axes.yaxis.grid(True)
+    axes.set_axisbelow(True)
+    # Hide unnecessary borders and tickmarks:
+    axes.spines['right'].set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.yaxis.set_ticks_position('left')
+    plt.tick_params(axis='x', which='both', bottom='off', top='off')
     # Add the legend at the top, underneath the title but outside the figure:
     plt.legend(frameon=False, bbox_to_anchor=(0.5, 1.05), loc=9, ncol=2, borderaxespad=0)
     # If given a filename, output to file:
     if ((filename is not None) and (type(filename) is str)):
-        plt.savefig(filename + '.png', bbox_inches='tight')
+        plt.savefig(filename, bbox_inches='tight')
 
 
 # ====== Pie Chart of Totals:
@@ -308,7 +320,7 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
         - 'Chat' should be the Chat object to analyse.
         - 'N' should be how many people to show explicitly; all others are grouped
           together in a final chunk.
-        - If a 'filename' is specified, output to a .png file as well as displaying
+        - If a 'filename' is specified, output to file as well as displaying
           onscreen for viewing.
         - The 'count_type' argument is passed to top_n_people() and so one of the
           four valid counts can be used.
@@ -364,7 +376,7 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
     plt.legend(labels=names, frameon=False, labelspacing=1, loc="center", bbox_to_anchor=[0, 0.5])
     # If given a filename, output to file:
     if ((filename is not None) and (type(filename) is str)):
-        plt.savefig(filename + '.png', bbox_inches='tight')
+        plt.savefig(filename, bbox_inches='tight')
     # To get white outlines, we changed default. Fix this:
     plt.rcParams['patch.edgecolor'] = _TEXT_COLOUR
 
