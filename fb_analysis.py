@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 from matplotlib import ticker
 import matplotlib
-import numpy as np
 import re
 
 # =============================================================================
