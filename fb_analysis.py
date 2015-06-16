@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import date2num, num2date
 from matplotlib import ticker
 import matplotlib
+import numpy as np
 import re
 
 # =============================================================================
@@ -94,6 +95,9 @@ def _change_matplotlib_colours(text_color=_TEXT_COLOUR, bg_colour=_BG_COLOUR):
 _change_matplotlib_colours()
 
 
+# ====== Histogram of Time of Day:
+
+
 def _hour_list():
     """Generate a list containing hours in day converted to floats."""
     hours_bins = [n / 24.0 for n in range(0, 25)]
@@ -167,6 +171,9 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
     # If given a filename, output to file:
     if ((filename is not None) and (type(filename) is str)):
         plt.savefig(filename + '.png', bbox_inches='tight')
+
+
+# ====== Histogram of Date:
 
 
 def _month_list(d1, d2):
@@ -275,6 +282,92 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
     # If given a filename, output to file:
     if ((filename is not None) and (type(filename) is str)):
         plt.savefig(filename + '.png', bbox_inches='tight')
+
+
+# ====== Pie Chart of Totals:
+
+
+# Colours from http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
+_COLOURS = ['#5DA5DA', '#FAA43A', '#60BD68', '#F17CB0', '#B2912F', '#B276B2', '#DECF3F', '#F15854']
+
+
+def _make_labels_wrap(labels):
+    """Break labels which contain more than one name into multiple lines."""
+    for i, l in enumerate(labels):
+        if len(l) > 25:
+            # Split lines at ", " and rejoin with newline.
+            labels[i] = '\n'.join(l.split(", "))
+    return labels
+
+
+def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=False,
+                       no_gui=False, percentages=True):
+    """Create a pie chart of the number of messages exchanged with friends.
+
+       The graph shows the most messaged friends sorted using the top_n_people()
+       code. The graph also shows percentage sizes of wedges, though this can be disabled.
+        - 'Chat' should be the Chat object to analyse.
+        - 'N' should be how many people to show explicitly; all others are grouped
+          together in a final chunk.
+        - If a 'filename' is specified, output to a .png file as well as displaying
+          onscreen for viewing.
+        - The 'count_type' argument is passed to top_n_people() and so one of the
+          four valid counts can be used.
+        - Setting 'groups' to True will include message threads with groups where
+          appropriate.
+        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
+          is specified with this, the function will run but produce no output anywhere.
+        - The percentages on the graph can be removed by setting 'percentages' to
+          False."""
+    # The title of the graph depends on the count_type:
+    _title_dict = {"total": "Total Lengths of Message Threads", "allfrom": "Total Number of Messages Recieved",
+                   "from": "Number of Messages Recieved from People in Personal Threads",
+                   "to": "Number of Messages Sent to People in Personal Threads"}
+    # The data to plot:
+    thread_counts = top_n_people(Chat, count_type=count_type, groups=groups)
+    # Set up useful lists and counts:
+    names = []
+    counts = []
+    other_count = 0
+    colours = []
+    # Run through the data, adding it to the correct list. If not in N, add to Other:
+    for n, t in enumerate(thread_counts):
+        if n < N:
+            names.append(t[0])
+            counts.append(t[1])
+            colours.append(_COLOURS[n % len(_COLOURS)])
+        else:
+            other_count += t[1]
+    # Add an "Others" section in dark grey using the other_count:
+    names.append("Others")
+    counts.append(other_count)
+    colours.append('#4D4D4D')
+    # If long names, wrap them:
+    _make_labels_wrap(names)
+    # Create the figure, hiding the display if no_gui set:
+    if no_gui:
+        plt.ioff()
+    plt.figure(figsize=(18, 9), dpi=80)
+    # We want the edges of the wedges in the chart to be white for aesthetics:
+    plt.rcParams['patch.edgecolor'] = 'white'
+    # Plot percentage counts on the figure:
+    if percentages:
+        pct = '%1.1f%%'
+    else:
+        pct = None
+    # Make the plot, starting at the top (90 degrees from horizontal) and percentages outside (pctdist > 1)
+    plt.pie(counts, colors=colours, autopct=pct, pctdistance=1.1, startangle=90, counterclock=False)
+    # Put the right title on the graph:
+    plt.suptitle(_title_dict[count_type], size=18)
+    # And make it circular:
+    plt.axis('equal')
+    # Add the legend:
+    plt.legend(labels=names, frameon=False, labelspacing=1, loc="center", bbox_to_anchor=[0, 0.5])
+    # If given a filename, output to file:
+    if ((filename is not None) and (type(filename) is str)):
+        plt.savefig(filename + '.png', bbox_inches='tight')
+    # To get white outlines, we changed default. Fix this:
+    plt.rcParams['patch.edgecolor'] = _TEXT_COLOUR
 
 
 # =============================================================================

@@ -156,7 +156,7 @@ class Thread(object):
             return datetime.datetime(*date)  # Expand the tuple and allow datetime to process it
 
     def _add_messages(self, new_messages):
-        """Allos adding messages to an already created Thread object.
+        """Allow adding messages to an already created Thread object.
 
            This function is useful for merging duplicate threads together."""
         self.messages.extend(new_messages)
