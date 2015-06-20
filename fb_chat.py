@@ -276,6 +276,12 @@ class Message(object):
         equal = equal and (self.date_time == message.date_time) and (self.text == message.text)
         return equal
 
+    def __len__(self):
+        """Return the number of characters in the message body."""
+        text = self.text.replace("<|NEWLINE|>", "")  # Undo adding extra characters
+        text = text.replace('""', '"')  # And escaping quote marks
+        return len(text)
+
     def _date_parse(self, date):
         """Allow dates to be entered as integer tuples (YYYY, MM, DD[, HH, MM]).
 

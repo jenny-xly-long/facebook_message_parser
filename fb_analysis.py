@@ -9,6 +9,8 @@ import re
 #                          Top N Most Messaged People
 # =============================================================================
 
+_COUNT_TYPES = ["total", "to", "from", "allfrom", "chars", "charsfrom", "charsto"]
+
 
 def _update_thread_dict(thread_dict, thread_name, num):
     """Add new entries to count dictionary, dealing with duplicates carefully."""
@@ -34,27 +36,51 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
           the other person in the thread. If 'groups' is enabled, all messages
           not from '_myname' are counted.
         - "allfrom" - the total number of messages from each individual person
-          across all threads. Groups cannot be enabled and will be ignored. This
-          will include MYNAME, the current user!"""
+          across all threads. Groups cannot be enabled and will be ignored."""
     thread_dict = {}
     if count_type is "to":
+        # Count the number of messages sent directly to each person.
         for t in Chat.threads:
             num = len(t.by(Chat._myname))
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "from":
+        # Count the number of messages received directly from each person.
         for t in Chat.threads:
             my_num = len(t.by(Chat._myname))
             tot_num = len(t)
             num = tot_num - my_num
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "allfrom":
-        # Remove _myname from all_people (but not the original!):
+        # Count all messages in all threads received from each person.
         all_people = Chat._all_people.copy()
-        all_people.remove(Chat._myname)
+        all_people.remove(Chat._myname)  # Remove _myname from all_people (but not the original!):
         for p in all_people:
             num = len(Chat.all_from(p))
             thread_dict.update({p: num})
-    else:  # Total messages from each thread
+    elif count_type is "chars":
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                num += len(m)
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "charsfrom":
+        # Count total number of chars sent by other people in threads.
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                if not m.sent_by(Chat._myname):
+                    num += len(m)
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "charsto":
+        # Count total number of chars sent to the other people in threads.
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                if m.sent_by(Chat._myname):
+                    num += len(m)
+            _update_thread_dict(thread_dict, t.people_str, num)
+    else:
+        # Else the default: count the total messages in each thread.
         for t in Chat.threads:
             num = len(t)
             _update_thread_dict(thread_dict, t.people_str, num)
@@ -119,7 +145,7 @@ def _dt_to_decimal_time(datetime):
 def messages_time_graph(Chat, name, filename=None, no_gui=False):
     """Create a graph of the time of day of messages sent between users.
 
-       Produces a histogram of the times of messages sent to and recieved from
+       Produces a histogram of the times of messages sent to and received from
        another user. The method only works for individuals, not for threads between
        multiple friends.
 
@@ -209,7 +235,7 @@ def _month_list(d1, d2):
 def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
     """Create a graph of the number of messages sent between users.
 
-       Produces a graph of messages sent to and recieved from another user. The
+       Produces a graph of messages sent to and received from another user. The
        method only works for individuals, not for threads between multiple friends.
 
        - 'Chat' should be the Chat object to analyse.
@@ -334,9 +360,12 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
         - The percentages on the graph can be removed by setting 'percentages' to
           False."""
     # The title of the graph depends on the count_type:
-    _title_dict = {"total": "Total Lengths of Message Threads", "allfrom": "Total Number of Messages Recieved",
-                   "from": "Number of Messages Recieved from People in Personal Threads",
-                   "to": "Number of Messages Sent to People in Personal Threads"}
+    _title_dict = {"total": "Total Lengths of Message Threads",
+                   "allfrom": "Total Number of Messages Received",
+                   "from": "Number of Messages Received from People in Personal Threads",
+                   "to": "Number of Messages Sent to People in Personal Threads", "chars": "Total Character Lengths of Message Threads",
+                   "charsfrom": "Character Length of All Messages Received from People in Personal Threads",
+                   "charsto": "Character Length of All Messages Sent to People in Personal Threads"}
     # The data to plot:
     thread_counts = top_n_people(Chat, count_type=count_type, groups=groups)
     # Set up useful lists and counts:
@@ -463,7 +492,7 @@ def top_word_use(Chat, name, from_me=False, ignore_single_words=False):
 
        - 'name' is a string of the name of the Thread to consider.
        - 'from_me' is a boolean flag to consider messages sent by you to 'name'
-         if True, otherwise messages recieved from 'name' are used, the default.
+         if True, otherwise messages received from 'name' are used, the default.
        - Setting 'ignore_single_words' to True removes words which are only used
          once, which reduces the length of the list returned."""
     if name != Chat._myname:
