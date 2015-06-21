@@ -15,7 +15,7 @@ __Producing Graphs__
 
 The `fb_analysis.py` file contains code to produce a stacked histogram showing the number of messages sent and recieved with a contact each month:
 
-![Sample Graph](/samples/sample_output_graph.png?raw=true)
+![Sample Graph](/samples/sample_date_graph.png?raw=true)
 
 
 #### Dependencies
