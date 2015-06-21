@@ -9,7 +9,8 @@ import re
 #                          Top N Most Messaged People
 # =============================================================================
 
-_COUNT_TYPES = ["total", "to", "from", "allfrom", "chars", "charsfrom", "charsto"]
+_COUNT_TYPES = ["total", "to", "from", "allfrom", "words", "wordsfrom", "wordsto",
+                "chars", "charsfrom", "charsto"]
 
 
 def _update_thread_dict(thread_dict, thread_name, num):
@@ -57,14 +58,39 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
         for p in all_people:
             num = len(Chat.all_from(p))
             thread_dict.update({p: num})
+    elif count_type is "words":
+        # Count total number of words exchanged in threads.
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                num += len(re.findall(r'\S+', m.text))  # Matches any non-whitespace sub-string
+                #num += len(m.text.split(" "))  # Counts all things separated by a space
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "wordsfrom":
+        # Count total number of words sent by other people in threads.
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                if not m.sent_by(Chat._myname):
+                    num += len(re.findall(r'\S+', m.text))
+            _update_thread_dict(thread_dict, t.people_str, num)
+    elif count_type is "wordsto":
+        # Count total number of words sent to the other people in threads.
+        for t in Chat.threads:
+            num = 0
+            for m in t.messages:
+                if m.sent_by(Chat._myname):
+                    num += len(re.findall(r'\S+', m.text))
+            _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "chars":
+        # Count total number of characters exchanged in threads.
         for t in Chat.threads:
             num = 0
             for m in t.messages:
                 num += len(m)
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "charsfrom":
-        # Count total number of chars sent by other people in threads.
+        # Count total number of characters sent by other people in threads.
         for t in Chat.threads:
             num = 0
             for m in t.messages:
@@ -72,7 +98,7 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
                     num += len(m)
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "charsto":
-        # Count total number of chars sent to the other people in threads.
+        # Count total number of characters sent to the other people in threads.
         for t in Chat.threads:
             num = 0
             for m in t.messages:
@@ -363,7 +389,10 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
     _title_dict = {"total": "Total Lengths of Message Threads",
                    "allfrom": "Total Number of Messages Received",
                    "from": "Number of Messages Received from People in Personal Threads",
-                   "to": "Number of Messages Sent to People in Personal Threads", "chars": "Total Character Lengths of Message Threads",
+                   "to": "Number of Messages Sent to People in Personal Threads",
+                   "words": "Total Word Counts of Message Threads", "wordsfrom": "Word Count of All Messages Received from People in Personal Threads",
+                   "wordsto": "Word Count of All Messages Sent to People in Personal Threads",
+                   "chars": "Total Character Lengths of Message Threads",
                    "charsfrom": "Character Length of All Messages Received from People in Personal Threads",
                    "charsto": "Character Length of All Messages Sent to People in Personal Threads"}
     # The data to plot:
