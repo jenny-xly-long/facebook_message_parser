@@ -168,7 +168,7 @@ def _dt_to_decimal_time(datetime):
     return time_decimal
 
 
-def messages_time_graph(Chat, name, filename=None, no_gui=False):
+def messages_time_graph(Chat, name=None, filename=None, no_gui=False):
     """Create a graph of the time of day of messages sent between users.
 
        Produces a histogram of the times of messages sent to and received from
@@ -183,18 +183,21 @@ def messages_time_graph(Chat, name, filename=None, no_gui=False):
          onscreen for viewing.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
          is specified with this, the function will run but produce no output anywhere."""
-    Thread = Chat[name]
+    # Implement a default case:
+    if name is None:
+        name = Chat._myname
     # Divide up into hourly bins, changing datetime objects to times in range [0,1):
     bins = _hour_list()
     # If looking at graph with other users, get messages to and from:
     if name != Chat._myname:
+        Thread = Chat[name]
         times_from = [_dt_to_decimal_time(message.date_time) for message in Thread.by(name)]
         times_to = [_dt_to_decimal_time(message.date_time) for message in Thread.by(Chat._myname)]
         label = [Chat._myname, name]
     else:  # If looking at all messages sent; do things differently:
-        times_from = None
-        times_to = [_dt_to_decimal_time(message.date_time) for message in Chat.all_from(Chat._myname)]
-        label = Chat._myname
+        times_from = [_dt_to_decimal_time(message.date_time) for message in Chat.all_messages() if message.author != Chat._myname]
+        times_to = [_dt_to_decimal_time(message.date_time) for message in Chat.all_messages() if message.author == Chat._myname]
+        label = [Chat._myname, "Others"]
     # Create the figure, hiding the display if no_gui set:
     if no_gui:
         plt.ioff()
@@ -258,7 +261,7 @@ def _month_list(d1, d2):
     return months
 
 
-def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=None, no_gui=False):
+def messages_date_graph(Chat, name=None, filename=None, start_date=None, end_date=None, no_gui=False):
     """Create a graph of the number of messages sent between users.
 
        Produces a graph of messages sent to and received from another user. The
@@ -275,6 +278,9 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
          inside this range can be used to narrow down the region considered.
        - To run without displaying a graph onscreen, set 'no_gui' to True. If no filename
          is specified with this, the function will run but produce no output anywhere."""
+    # Implement a default case:
+    if name is None:
+        name = Chat._myname
     # Sanity check input dates, and fix if necessary (note MUST be one line to avoid reassignment before comparison):
     if ((start_date is not None) and (end_date is not None)):
         start_date, end_date = min(start_date, end_date), max(start_date, end_date)
@@ -296,7 +302,7 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
             label = [Chat._myname, name]
     # If looking at all messages sent; do things differently:
     else:
-        message_list = Chat.all_from(Chat._myname)
+        message_list = Chat.all_messages()
         # If a start date given (which is after the message thread starts), use it:
         if start_date is None:
             d_min = message_list[0].date_time
@@ -307,9 +313,9 @@ def messages_date_graph(Chat, name, filename=None, start_date=None, end_date=Non
             d_max = message_list[-1].date_time
         else:
             d_max = min(Chat._date_parse(end_date), message_list[-1].date_time)
-        dates_from = None
-        dates_to = [date2num(message.date_time) for message in message_list]
-        label = Chat._myname
+        dates_from = [date2num(message.date_time) for message in message_list if message.author != Chat._myname]
+        dates_to = [date2num(message.date_time) for message in message_list if message.author == Chat._myname]
+        label = [Chat._myname, "Others"]
     # Divide up into month bins, changing datetime objects to number of days for plotting:
     bins = [date2num(b) for b in _month_list(d_min, d_max)]
     # Create the figure, hiding the display if no_gui set:
