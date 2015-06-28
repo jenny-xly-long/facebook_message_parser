@@ -175,7 +175,7 @@ class FBMessageParse(object):
         if len(self._UNKNOWNS) == 0:
             return
         self._UNKNOWNS = list(set(self._UNKNOWNS))  # An unordered duplicate removal method
-        print "To identify these accounts, try visiting www.facebook.com/[uid] and adding '[uid]:[name]' to 'uid_people'"
+        print "To identify these accounts, try visiting www.facebook.com/[uid] and adding '[uid]:[name]' to a file in the current directory named 'uid_people'"
         for uid in self._UNKNOWNS:
             print uid
 
