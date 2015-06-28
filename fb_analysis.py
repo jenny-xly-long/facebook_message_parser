@@ -6,7 +6,11 @@ import matplotlib
 import re
 
 # =============================================================================
-#                          Top N Most Messaged People
+#                          Top N Most Messaged People                         #
+#                                                                             #
+# Public Functions:                                                           #
+#  - top_n_people(Chat, N, count_type, groups)                                #
+#                                                                             #
 # =============================================================================
 
 _COUNT_TYPES = ["total", "to", "from", "allfrom", "words", "wordsfrom", "wordsto",
@@ -64,7 +68,7 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
             num = 0
             for m in t.messages:
                 num += len(re.findall(r'\S+', m.text))  # Matches any non-whitespace sub-string
-                #num += len(m.text.split(" "))  # Counts all things separated by a space
+                # num += len(m.text.split(" "))  # Counts all things separated by a space
             _update_thread_dict(thread_dict, t.people_str, num)
     elif count_type is "wordsfrom":
         # Count total number of words sent by other people in threads.
@@ -122,12 +126,28 @@ def top_n_people(Chat, N=-1, count_type="total", groups=False):
 
 # =============================================================================
 #                           Graphing Message Counts                           #
+#                                                                             #
+# Public Functions:                                                           #
+#  - use_facebook_colours()                                                   #
+#  - use_ios_colours()                                                        #
+#  - messages_time_graph(Chat, name, filename, no_gui)                        #
+#  - messages_date_graph(Chat, name, filename, start_date, end_date, no_gui)  #
+#  - messages_pie_chart(Chat, N, filename, count_type, groups,                #
+#                                                        no_gui, percentages) #
+#                                                                             #
 # =============================================================================
 
-_FB_GREY = (0.9294, 0.9294, 0.9294)
+# Some useful colours:
 _FB_BLUE = (0.2314, 0.3490, 0.5961)
+_FB_GREY = (0.9294, 0.9294, 0.9294)
+_IOS_GREEN = (0.5451, 0.8235, 0.2824)
+_IOS_GREY = (0.8980, 0.8980, 0.9176)
+
+# The colours used by the code:
 _BG_COLOUR = (1.0, 1.0, 1.0)
 _TEXT_COLOUR = (0.0, 0.0, 0.0)
+_MY_COLOUR = None
+_OTHER_COLOUR = None
 
 
 def _change_matplotlib_colours(text_color=_TEXT_COLOUR, bg_colour=_BG_COLOUR):
@@ -145,7 +165,25 @@ def _change_matplotlib_colours(text_color=_TEXT_COLOUR, bg_colour=_BG_COLOUR):
     matplotlib.rc('ytick', color=_TEXT_COLOUR)
 
 
+def _change_graph_colours(my_colour, other_colour):
+    """Change the colours used in histograms, both self colour and the other person colour."""
+    global _MY_COLOUR, _OTHER_COLOUR
+    _MY_COLOUR = _FB_BLUE
+    _OTHER_COLOUR = _FB_GREY
+
+
+def use_facebook_colours():
+    """Use Facebook's colours for graphs; blue for self, grey for others."""
+    _change_graph_colours(my_colour=_FB_BLUE, other_colour=_FB_GREY)
+
+
+def use_ios_colours():
+    """Use iOS's colours for graphs; green for self, grey for others."""
+    _change_graph_colours(my_colour=_IOS_GREEN, other_colour=_IOS_GREY)
+
+
 # Run the colour change code on import of the module:
+use_facebook_colours()
 _change_matplotlib_colours()
 
 
@@ -202,7 +240,7 @@ def messages_time_graph(Chat, name=None, filename=None, no_gui=False):
     if no_gui:
         plt.ioff()
     plt.figure(figsize=(18, 9), dpi=80)
-    plt.hist([times_to, times_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=label, stacked=True)
+    plt.hist([times_to, times_from], bins, histtype='bar', color=[_MY_COLOUR, _OTHER_COLOUR], label=label, stacked=True)
     # Title the graph correctly, and label axes:
     if name != Chat._myname:
         plt.suptitle("Messages with " + name, size=18)
@@ -322,7 +360,7 @@ def messages_date_graph(Chat, name=None, filename=None, start_date=None, end_dat
     if no_gui:
         plt.ioff()
     plt.figure(figsize=(18, 9), dpi=80)
-    plt.hist([dates_to, dates_from], bins, histtype='bar', color=[_FB_BLUE, _FB_GREY], label=label, stacked=True)
+    plt.hist([dates_to, dates_from], bins, histtype='bar', color=[_MY_COLOUR, _OTHER_COLOUR], label=label, stacked=True)
     # Title the graph correctly, and label axes:
     if name != Chat._myname:
         plt.suptitle("Messages with " + name, size=18)
@@ -450,6 +488,10 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
 
 # =============================================================================
 #                           Word Frequency Analysis                           #
+#                                                                             #
+# Public Functions:                                                           #
+#  - top_word_use()                                                           #
+#                                                                             #
 # =============================================================================
 
 
