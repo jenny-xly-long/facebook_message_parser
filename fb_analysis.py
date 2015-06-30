@@ -490,7 +490,7 @@ def messages_pie_chart(Chat, N=10, filename=None, count_type="total", groups=Fal
 #                           Word Frequency Analysis                           #
 #                                                                             #
 # Public Functions:                                                           #
-#  - top_word_use()                                                           #
+#  - top_word_use(Chat, name, from_me, ignore_single_words)                   #
 #                                                                             #
 # =============================================================================
 
