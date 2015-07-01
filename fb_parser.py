@@ -42,7 +42,7 @@ class FBMessageParse(object):
             self._archive = zipfile.ZipFile(fname, 'r')
         if self._archive is not None:
             self._messages_htm = self._archive.open('html/messages.htm')
-        elif load_pickle:
+        elif load_pickle or ".pickle" in fname:
             self.load_from_pickle(fname)
         else:
             self._messages_htm = open(fname, "r")
