@@ -168,8 +168,8 @@ def _change_matplotlib_colours(text_color=_TEXT_COLOUR, bg_colour=_BG_COLOUR):
 def _change_graph_colours(my_colour, other_colour):
     """Change the colours used in histograms, both self colour and the other person colour."""
     global _MY_COLOUR, _OTHER_COLOUR
-    _MY_COLOUR = _FB_BLUE
-    _OTHER_COLOUR = _FB_GREY
+    _MY_COLOUR = my_colour
+    _OTHER_COLOUR = other_colour
 
 
 def use_facebook_colours():
