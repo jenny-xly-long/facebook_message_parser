@@ -12,6 +12,8 @@ If the locale of the export is not the UK, then some other lines may need editin
 
 Run "`python facebook.py [optional_filename]`" with the `facebook-[myusername].zip` or `messages.htm` files in the same directory to export to CSV, display top 10 most messaged friends and output a graph showing messages with the most messaged friend. This sample code can easily be adapted.
 
+The `fb_chat.Chat` object returned by the parser (the object called `Facebook.Chat` in `facebook.py`) could be pickled and loaded in another program to form a base API to interact with the messages there. (Note that this, like the export, contains private messages in plain text format, and that the `fb_chat` code may need to be imported too).
+
 __Producing Graphs__
 
 The `fb_analysis.py` file contains code to produce a stacked histogram showing the number of messages sent and recieved with a contact each month:
