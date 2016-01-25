@@ -20,6 +20,9 @@ The `fb_analysis.py` file contains code to produce a stacked histogram showing t
 
 ![Sample Graph](/samples/sample_date_graph.png?raw=true)
 
+__A browser-based interface__
+
+If you want to view the export in a browser (and don't want to use the perfectly servicable way of viewing Facebook Messages in a browser that is `www.facebook.com`) then [Flask Facebook Messages](https://github.com/jsharkey13/flask_facebook_messages) may be of use. Add `Facebook.dump_to_pickle()` on a new line after [Line 52](https://github.com/jsharkey13/facebook_message_parser/blob/master/facebook.py#L52) of `facebook.py` to produce a pickle export, then use the code in that repository to view it!
 
 #### Dependencies
 The code is written in Python 2.7.
