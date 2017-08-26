@@ -1,4 +1,5 @@
 import datetime
+import dateutil
 import sys
 from bs4 import BeautifulSoup as bs
 import zipfile
@@ -23,7 +24,6 @@ class FBMessageParse(object):
           a file called 'duplicates' for the process to occur on the next read in from
           zip or htm."""
 
-    _DATEFORMAT = '%A, %d %B %Y at %H:%M %Z'
     _MYNAME = "My Name"
     _MYUSERNAME = "myusername"
 
@@ -141,14 +141,11 @@ class FBMessageParse(object):
     def _message_date_parse(self, datestr):
         """Turn the datestamp on the message into a datetime object.
 
-           UK based datestamps have +01 for BST; other locales may require
-           customised versions of this code."""
-        if "+01" in datestr:
-            # BST = 1   # If we want times in UTC, uncomment these lines
-            datestr = datestr.replace("+01", "")
-        # else:
-            # BST = 0
-        return datetime.datetime.strptime(datestr, self._DATEFORMAT)  # + datetime.timedelta(hours=BST)
+           This will parse to a timezone aware Python timestamp and then
+           remove the timezone info; converting it to local time.
+           This may not be the behaviour desired, and can be changed;
+           but most other functions assume naive datetimes."""
+        return dateutil.parser.parse(datestr).replace(tzinfo=None)
 
     def _date_unix(self, datetime_date):
         """Turn a datetime.datetime object into a UNIX time int."""
