@@ -111,12 +111,13 @@ class FBMessageParse(object):
 
            Change any message author names and remove the name of the Chat owner
            (_MYNAME) from the name unless messages are sent to oneself."""
+        namestr = namestr.encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
         namelist = sorted(namestr.split(", "))
         for i, name in enumerate(namelist):
             namelist[i] = self._message_author_parse(name)
         if ((self._MYNAME in namelist) and (len(namelist) > 1)):  # You can send yourself messages, so don't delete name if it's the only one.
             namelist.remove(self._MYNAME)                         # Otherwise remove your name from the list.
-        return ", ".join(namelist).encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
+        return ", ".join(namelist)
 
     def _message_author_parse(self, name):
         """Tidy up the name of the sender of a message.
@@ -125,6 +126,9 @@ class FBMessageParse(object):
            their name if possible. If the name is a duplicate (or to be renamed)
            then rename. Any UIDs which remain are added to a list to facilitate
            populating a 'uid_people' file: see print_unknowns()."""
+        if name is None:
+            return "UNKNOWN_AUTHOR" # Facebook has been providing messages with no recorded author!
+        name = name.encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
         n = name.replace("@facebook.com", "")
         if n in self._UIDPEOPLE:
             name = self._UIDPEOPLE[n]
@@ -132,7 +136,7 @@ class FBMessageParse(object):
             name = self._PEOPLEDUPLICATES[n]
         if ((n in name) and (n != name)):  # If n is still the UID, and we still don't have a name:
             self._UNKNOWNS.append(n)      # Add the UID to the UNKNOWN list
-        return name.encode('ascii', 'replace')  # BeutifulSoup works in Unicode, do we want ASCII names?
+        return name
 
     def _message_date_parse(self, datestr):
         """Turn the datestamp on the message into a datetime object.
@@ -195,7 +199,7 @@ class FBMessageParse(object):
             print "No archive/message file open. Was data loaded from a pickle file?"
             return
         #
-        soup = bs(self._messages_htm)
+        soup = bs(self._messages_htm, "lxml")
         # Verify that we're parsing a Facebook Message export and _MYNAME is right:
         check_header = self._MYNAME + " - Messages"
         try:

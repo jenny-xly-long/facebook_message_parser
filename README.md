@@ -29,6 +29,6 @@ The code is written in Python 2.7.
 
 The parser uses [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup/) to do the bulk of the capture from the htm file.
 
-The analysis code uses [matplotlib](http://matplotlib.org/) to produce graphs of message counts. An example graph can be found in the `samples` directory.
+The analysis code uses [matplotlib](https://matplotlib.org/) to produce graphs of message counts. An example graph can be found in the `samples` directory.
 
-[Anaconda Python](https://store.continuum.io/cshop/anaconda/) for scientific computing is a simple and easy way to install all the dependencies for the code, alongside many other useful libraries. It can be downloaded [here](http://continuum.io/downloads).
+[Anaconda Python](https://store.continuum.io/cshop/anaconda/) for scientific computing is a simple and easy way to install all the dependencies for the code, alongside many other useful libraries. It can be downloaded [here](https://www.continuum.io/downloads).

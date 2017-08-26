@@ -14,6 +14,7 @@ sys.setdefaultencoding('utf8')
 streamWriter = codecs.lookup('utf-8')[-1]
 sys.stdout = streamWriter(sys.stdout)
 
+
 if __name__ == "__main__":
     """Allow the parser to be run from the command line.
 
@@ -36,6 +37,7 @@ if __name__ == "__main__":
         print "File " + fname + " does not exist or could not be found! Abort."
         sys.exit(-1)
 
+    # Now use the Facebook.Chat object to do stuff!
     # Some example code to add functionality immediately.
 
     # Create the parser, and parse the messages file:
