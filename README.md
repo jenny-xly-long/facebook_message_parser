@@ -1,5 +1,16 @@
 # Facebook Message Export Parser
 
+---
+## Update September 2018
+
+__Deprecation Notice__
+
+Facebook now support exports in JSON format, which somewhat reduces the need for this code. The format of these exports has changed a great deal, and is still changing. This code will not work with exports newer than April 2018.
+
+Some (unmaintained) code that may work with newer JSON exports can be found [in this Gist](https://gist.github.com/jsharkey13/d60b7b421e08c98d426d03c39f8b4a12), but be aware that code is Python 3 and the format of Facebook's export may have changed since it was written.
+
+---
+
 Facebook has a feature that allows users to download a copy of their data as a zip archive containing htm files with their data. The aim of this parser is to take this archive and to extract a user's Facebook Messages from it; to transfer them into a more useful format, as well as performing some analysis to produce interesting data.
 
 This code is adapted from [CopOnTheRun/FB-Message-Parser](https://github.com/CopOnTheRun/FB-Message-Parser).
